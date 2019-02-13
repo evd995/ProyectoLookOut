@@ -17,3 +17,7 @@
 - Acosador: Muchas interacciones malas con persona acosada o aislada, pero buenas con popular u otros. Emoción contenta o neutra. 
 - Amargado: Mayor tendencia a disgusto o enojo. Puede tener interacciones tanto buenas como malas de forma aleatoria.
 - Otros...
+
+## Calidad de interacción
+
+Una interacción es mala cuando al menos uno de los dos presenta emociones negativas
