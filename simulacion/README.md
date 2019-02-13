@@ -3,9 +3,12 @@
 
 ## Cosas por agregar:
 
-- Personalidades, la mayoría debe ser promedio
-- Calidad de interacción (buena o malo)
-- Guardar los tiempos de cada "tick" y que se guarden los datos relevantes asociados a cada tiempo (interacciones, emociones, etc)
+- [1] Personalidades, la mayoría debe ser promedio 
+- [1] Calidad de interacción (buena o malo) 
+- [2] Guardar los tiempos de cada "tick" y que se guarden los datos relevantes asociados a cada tiempo (interacciones, emociones, etc)
+
+[1]: Se pueden hacer rápido (Feña)
+[2]: Hay que pensar en cómo se guardarán los datos en la base de datos y en el dashboard
 
 
 ## Personalidades
