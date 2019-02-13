@@ -8,6 +8,7 @@
 - [2] Guardar los tiempos de cada "tick" y que se guarden los datos relevantes asociados a cada tiempo (interacciones, emociones, etc)
 
 [1]: Se pueden hacer rápido (Feña)
+
 [2]: Hay que pensar en cómo se guardarán los datos en la base de datos y en el dashboard
 
 
