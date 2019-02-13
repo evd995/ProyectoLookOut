@@ -1,14 +1,14 @@
 # Simulacion
 
 
-## Cosas por agregar:
+## Cosas por agregar:
 
 - Personalidades, la mayoría debe ser promedio
 - Calidad de interacción (buena o malo)
 - Guardar los tiempos de cada "tick" y que se guarden los datos relevantes asociados a cada tiempo (interacciones, emociones, etc)
 
 
-## Personalidades
+## Personalidades
 
 - Aislado: Persona que se siente incomoda interactuando. Cuando está sola tiene mayor tendencia a estar neutra.
 - Acosado: Tiene tendencia a tener malas interacciones
