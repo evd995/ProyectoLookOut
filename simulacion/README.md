@@ -20,4 +20,4 @@
 
 ## Calidad de interacción
 
-Una interacción es mala cuando al menos uno de los dos presenta emociones negativas
+Una interacción es mala cuando al menos uno de los dos presenta emociones negativas (enojo, disgusto, triste, miedo)
