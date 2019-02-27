@@ -37,7 +37,7 @@ Una interacción es mala cuando al menos uno de los dos presenta emociones negat
         - Emocion
         - % de seguridad con que detectó la emoción
     - Interacciones
-      - Dia-Hora
-        - Persona con quien interacuó
-        - Emocion que sentia
-        - Emoción de la otra persona
+      - ID_otra_persona
+        - Día-Hora
+          - Emocion que sentia
+          - Emoción de la otra persona
