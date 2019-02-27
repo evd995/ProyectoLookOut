@@ -26,3 +26,16 @@
 ## Calidad de interacción
 
 Una interacción es mala cuando al menos uno de los dos presenta emociones negativas (enojo, disgusto, triste, miedo)
+
+## Formato de salida
+
+- Personas
+  - ID_Persona
+    - Emociones
+      - Dia-Hora
+        - Emocion
+        - % de seguridad con que detectó la emoción
+    - Interacciones
+      - Dia-Hora
+        - Persona con quien interacuó
+        - Emocion que sentia
