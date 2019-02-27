@@ -6,6 +6,7 @@
 - [1] Personalidades, la mayoría debe ser promedio 
 - [1] Calidad de interacción (buena o malo) 
 - [2] Guardar los tiempos de cada "tick" y que se guarden los datos relevantes asociados a cada tiempo (interacciones, emociones, etc)
+- [1] Cambiar el output de las emociones a vectores
 
 [1]: Se pueden hacer rápido (Feña)
 
