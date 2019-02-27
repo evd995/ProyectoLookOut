@@ -27,7 +27,7 @@
 
 Una interacción es mala cuando al menos uno de los dos presenta emociones negativas (enojo, disgusto, triste, miedo)
 
-## Formato de salida
+## Formato de salida
 
 - Personas
   - ID_Persona
