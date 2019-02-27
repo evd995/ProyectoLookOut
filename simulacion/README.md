@@ -31,6 +31,7 @@ Una interacción es mala cuando al menos uno de los dos presenta emociones negat
 
 - Personas
   - ID_Persona
+    - Nombre
     - Emociones
       - Dia-Hora
         - Emocion
@@ -39,3 +40,4 @@ Una interacción es mala cuando al menos uno de los dos presenta emociones negat
       - Dia-Hora
         - Persona con quien interacuó
         - Emocion que sentia
+        - Emoción de la otra persona
