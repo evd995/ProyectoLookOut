@@ -1,124 +1,16 @@
+# coding=utf-8
 import random
 import numpy as np
 import datetime
-
-NOMBRES_H = ["Aldo", "Benito", "Carlos", "Damián", "Edgar", "Fabián",
-             "Gabriel", "Hugo", "Iván", "Jorge", "Kevin", "Lucas", "Marcos",
-             "Nicolás", "Óscar", "Pablo", "Rafael", "Sergio", "Tomás",
-             "Ulises", "Vicente"]
-
-NOMBRES_M = ["Adela", "Berta", "Camila", "Delia", "Ema", "Florencia", "Gilda",
-             "Hilda", "Inés", "Jacinta", "Karen", "Lara", "Maite", "Natalia",
-             "Octavia", "Pía", "Romina", "Sabrina", "Telma", "Úrsula", "Viviana"]
-
-APELLIDOS = ["Gonzalez", "Muñoz", "Rojas", "Diaz", "Perez", "Soto", "Silva",
-             "Contreras", "Lopez", "Rodriguez", "Morales", "Martinez",
-             "Fuentes", "Valenzuela", "Araya", "Sepulveda", "Espinoza",
-             "Torres", "Castillo", "Ramirez", "Flores", "Castro", "Fernandez",
-             "Alvarez", "Hernandez", "Herrera", "Vargas", "Gutierrez", "Gomez"]
-
-
-class Estudiante:
-    def __init__(self, genero):
-        self.genero = genero
-        if genero is "hombre":
-            self.nombre = random.choice(NOMBRES_H)
-        elif genero is "mujer":
-            self.nombre = random.choice(NOMBRES_M)
-        self.apellido = random.choice(APELLIDOS)
-        self.definir_sociabilidad()
-        self.interactuar = False  # indica disposición a interactuar
-        self.interactuando = False  # indica si ya está interactuando o no
-        self.puesto = None
-        self.sociabilizacion_cont = 0
-
-        self.emocion = "neutro"
-        self.miedo_cont = 0
-        self.disgusto_cont = 0
-        self.alegria_cont = 0
-        self.neutro_cont = 0
-        self.sorpresa_cont = 0
-        self.enojo_cont = 0
-        self.tristeza_cont = 0
-
-    def definir_sociabilidad(self):
-        """
-        Define de forma aleatoria la sociabilidad como baja, media o alta.
-        Los estudiantes tienen tendencia a ser más sociables (dado por la media
-        de cada distribución).
-        """
-        baja = random.gauss(1, 0.4)
-        media = random.gauss(1.2, 0.4)
-        alta = random.gauss(1.4, 0.4)
-        output = max([baja, media, alta])
-        if output == baja:
-            self.sociabilidad = "baja"
-        elif output == media:
-            self.sociabilidad = "media"
-        elif output == alta:
-            self.sociabilidad = "alta"
-
-    def definir_interactuar(self):
-        """
-        Define si en esta 'ronda' (tick de simulación) el estudiante está
-        dispuesto a interactuar o no. Los pesos de ambas opciones dependen de
-        su sociabilidad.
-        Además, vuelve el "sociabilizando" a False
-        """
-        self.sociabilizando = False
-        if self.sociabilidad == "baja":
-            peso = [0.7, 0.3]
-        elif self.sociabilidad == "media":
-            peso = [0.5, 0.5]
-        elif self.sociabilidad == "alta":
-            peso = [0.3, 0.7]
-        sociabilizar = np.random.choice(["false", "true"], p=peso)
-        if sociabilizar == "false":
-            self.sociabilizar = False
-        elif sociabilizar == "true":
-            self.sociabilizar = True
-
-    def cambiar_emocion(self):
-        """
-        Las emociones cambian pero tienen predisposición a mantenerse.
-        Se incrementa un contador para llevar una estadística de las emociones.
-        Los pesos de cada emoción dependen de la sociabilidad.
-        Pesos deben sumar 1 o da error
-        """
-        if self.sociabilidad == "baja":
-            peso = [0.1, 0.1, 0.05, 0.1, 0.1, 0.1, 0.45]
-        elif self.sociabilidad == "media":
-            peso = [0.1, 0.1, 0.1, 0.45, 0.05, 0.1, 0.1]
-        elif self.sociabilidad == "alta":
-            peso = [0.1, 0.1, 0.45, 0.1, 0.1, 0.1, 0.05]
-
-        if random.gauss(0.5, 0.2) > 0.5:
-            self.emocion = np.random.choice(
-                ["miedo", "disgusto", "alegria", "neutro", "sorpresa",
-                 "enojo", "tristeza"], p=peso)
-
-        if self.emocion == "miedo":
-            self.miedo_cont += 1
-        elif self.emocion == "disgusto":
-            self.disgusto_cont += 1
-        elif self.emocion == "alegria":
-            self.alegria_cont += 1
-        elif self.emocion == "neutro":
-            self.neutro_cont += 1
-        elif self.emocion == "sorpresa":
-            self.sorpresa_cont += 1
-        elif self.emocion == "enojo":
-            self.enojo_cont += 1
-        elif self.emocion == "tristeza":
-            self.tristeza_cont += 1
-
-    def __repr__(self):
-        return self.nombre + " " + self.apellido
+from estudiantes import Afectado, NoAfectado
+from collections import defaultdict
+import json
 
 
 class Sala:
     def __init__(self):
         self.asientos = []
+        self.afectados = []
         self.estudiantes = []
         for j in range(8):
             for i in range(11):
@@ -139,21 +31,33 @@ class Sala:
         crear = False
         while not crear:
             print("El número de mujeres y hombres no debe sumar más de 36")
-            mujeres = input("ingrese el número de mujeres \n")
-            hombres = input("Ingrese el número de hombres \n")
-            if not mujeres.isdigit() or not hombres.isdigit():
+
+            estudiantes = input("Ingrese cantidad de estudiantes totales \n")
+            afectados = input("Ingrese cantidad de estudiantes afectados \n")
+
+            if not estudiantes.isdigit() or not afectados.isdigit():
                 print("Se debe ingresar números enteros")
-            elif int(hombres) + int(mujeres) > 36:
+            elif int(estudiantes) > 36:
                 print("Los alumnos deben ser máximo 36")
+            elif int(afectados) > int(estudiantes):
+                print("Los alumnos afectados no pueden superar al total")
             else:
                 crear = True
-                hombres = int(hombres)
-                mujeres = int(mujeres)
+                estudiantes = int(estudiantes)
+                afectados = int(afectados)
 
-        for k in range(hombres):
-            self.estudiantes.append(Estudiante("hombre"))
-        for k in range(mujeres):
-            self.estudiantes.append(Estudiante("mujer"))
+        # Poblar estudiantes no afectados
+        for k in range(estudiantes - afectados):
+            genero = random.choice(["mujer", "hombre"])
+            self.estudiantes.append(NoAfectado(genero))
+
+        # Poblar estudiantes afectados
+        for k in range(afectados):
+            genero = random.choice(["mujer", "hombre"])
+            estudiante = Afectado(genero)
+            self.estudiantes.append(estudiante)
+            self.afectados.append(estudiante)
+
         random.shuffle(self.estudiantes)
 
     def ordenar_alumnos(self):
@@ -169,14 +73,14 @@ class Sala:
         for i in self.estudiantes:
             i.puesto = self.asientos.pop(0)
 
-    def tick(self):
+    def tick(self, tick_value):
         """
         Es un ciclo de simulación. Equivale a un minuto
 
         """
         for i in self.estudiantes:
             i.definir_interactuar()
-            i.cambiar_emocion()
+            i.cambiar_emocion(tick_value)
         for i in self.estudiantes:
             if i.sociabilizar and not i.sociabilizando:
                 candidatos_interaccion = []
@@ -193,6 +97,11 @@ class Sala:
                     i.sociabilizacion_cont += 1
                     elegido.sociabilizando = True
                     elegido.sociabilizacion_cont += 1
+
+                    # Agregar interacciones
+                    i.agregar_interaccion(elegido, tick_value)
+                    elegido.agregar_interaccion(i, tick_value)
+
                     str = i.__repr__() + " interactuando con " + elegido.__repr__()
                     print(str)
         self.hora += self.tiempo_incremento
@@ -200,10 +109,25 @@ class Sala:
 
     def simular(self):
         while self.cont < 120:
-            self.tick()
+            self.tick(self.cont)
         self.generar_reporte()
 
     def generar_reporte(self):
+        registros = defaultdict(dict)
+        for estudiante in self.estudiantes:
+            id_estudiante = estudiante.nombre + estudiante.apellido
+            registros[id_estudiante]['Emociones'] = estudiante.registro_emociones
+            registros[id_estudiante]['Interacciones'] = estudiante.registro_interacciones
+
+        with open('registro.json', 'w') as out:
+            json.dump(registros, out)
+
+        with open('afectado.txt', 'w') as out:
+            for afectado in self.afectados:
+                id_afectado = afectado.nombre + afectado.apellido
+                out.write(id_afectado)
+
+        """
         reporte = open('reporte.txt', 'w')
         for i in self.estudiantes:
             reporte.write("--------------------------\n")
@@ -237,7 +161,9 @@ class Sala:
             tristeza = "{:.2f}".format(
                 i.tristeza_cont * 100 / emocion_total)
             reporte.write(f"Tristeza: {tristeza}% \n")
+        """
 
 
-sala = Sala()
-sala.simular()
+if __name__ == '__main__':
+    sala = Sala()
+    sala.simular()
