@@ -25,9 +25,9 @@ class Estudiante:
     # Parametros para function beta (distribucion de emocion)
     #TENDENDIA_ALTA = (1, 5)
     #TENDENCIA_BAJA = (5, 1)
-    TENDENDIA_ALTA = (5, 1)
-    TENDENCIA_BAJA = (1, 5)
-    TENDENCIA_NEUTRA = (2, 2)
+    TENDENDIA_ALTA = (5, 2)
+    TENDENCIA_BAJA = (2, 5)
+    TENDENCIA_NEUTRA = (1.5, 1.5)
 
     def __init__(self, genero):
         self.genero = genero
@@ -159,3 +159,39 @@ class NoAfectado(Estudiante):
 
         self.sociabilidad = random.choice(['media', 'alta'])
         self.tendencia_emocional = 'positiva'
+
+
+class Vulnerable(Estudiante):
+    def __init__(self, vulnerabilidad=0.1, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.sociabilidad = random.choice(['media', 'alta'])
+        self.tendencia_emocional = 'positiva'
+
+        # Probabilidad de que se presente un caso que exponga al alumno
+        self.vulnerabilidad = vulnerabilidad
+        self.tendencia_actual = 'positiva'
+
+    def cambiar_tendencia(self):
+        """
+        Cambia la tendencia emocional actual del estudiante
+        """
+        if self.tendencia_actual == 'positiva':
+            self.sociabilidad = 'baja'
+            self.tendencia_emocional = 'negativa'
+            self.tendencia_actual = 'negativa'
+
+        else:
+            self.sociabilidad = random.choice(['media', 'alta'])
+            self.tendencia_emocional = 'positiva'
+            self.tendencia_actual = 'positiva'
+
+    def definir_cambio(self):
+        """
+        Decide de forma aleatoria, según la vulnerabilidad del niño, si
+        sufrirá de una situación que lo exponga.
+        """
+        hay_cambio = np.random.choice(
+            [False, True], p=[1 - self.vulnerabilidad, self.vulnerabilidad])
+        if hay_cambio:
+            self.cambiar_tendencia()
