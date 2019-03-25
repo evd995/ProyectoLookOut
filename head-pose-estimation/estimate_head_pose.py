@@ -50,15 +50,18 @@ def get_faces(detector, img_queue, box_queue):
     """Get face from image queue. This function is used for multiprocessing"""
     while True:
         image = img_queue.get()
-        confidences, faceboxes = detector.get_faceboxes(image, threshold=0.5)
+        confidences, faceboxes = detector.get_faceboxes(image, threshold=0.2)
         for box in faceboxes:
             box_queue.put(box)
         box_queue.put('STOP')
 
+import os
 def main():
     """MAIN"""
     # Video source from webcam or video file.
-    video_src = 0
+    #video_src = 0
+    video_src = "../videos/sala3.mp4"
+
     cam = cv2.VideoCapture(video_src)
     _, sample_frame = cam.read()
 
@@ -70,8 +73,8 @@ def main():
     img_queue = Queue()
     box_queue = Queue()
     img_queue.put(sample_frame)
-    #box_process = Process(target=get_face, args=(mark_detector, img_queue, box_queue,))
-    box_process = Process(target=get_faces, args=(face_detector, img_queue, box_queue,))
+    box_process = Process(target=get_face, args=(mark_detector, img_queue, box_queue,))
+    #box_process = Process(target=get_faces, args=(face_detector, img_queue, box_queue,))
     box_process.start()
 
     # Introduce pose estimator to solve pose. Get one frame to setup the
@@ -96,6 +99,7 @@ def main():
     emotions = ('angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral')
 
     while True:
+        input()
         # Read frame, crop it, flip it, suits your needs.
         frame_got, frame = cam.read()
         if frame_got is False:
@@ -121,13 +125,17 @@ def main():
         #facebox = box_queue.get()
 
         faceboxes = dump_queue(box_queue)
-
+        print("{} FACEBOXES".format(len(faceboxes)))
         for facebox in faceboxes:
             if min(facebox) < 0:
                 continue
             # Detect landmarks from image of 128x128.
             face_img = frame[facebox[1]: facebox[3],
                              facebox[0]: facebox[2]]
+
+            if not face_img.shape[0] or not face_img.shape[1]:
+                continue
+
             face_img = cv2.resize(face_img, (CNN_INPUT_SIZE, CNN_INPUT_SIZE))
             face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
             marks = mark_detector.detect_marks(face_img)
@@ -193,6 +201,8 @@ def main():
 
             # Try pose estimation with 68 points.
             pose = pose_estimator.solve_pose_by_68_points(marks)
+            #pose = pose_estimator.solve_pose(marks)
+
 
             # Stabilize the pose.
             #stabile_pose = []
