@@ -56,12 +56,11 @@ def get_faces(detector, img_queue, box_queue):
         box_queue.put('STOP')
 
 import os
-def main():
-    """MAIN"""
-    # Video source from webcam or video file.
-    #video_src = 0
-    video_src = "../videos/sala3.mp4"
-
+def main(video_src):
+    """MAIN
+    
+    :param video_src: Source of video to analyze
+    :type video_src: str or int"""
     cam = cv2.VideoCapture(video_src)
     _, sample_frame = cam.read()
 
