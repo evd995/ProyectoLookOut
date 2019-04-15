@@ -1,7 +1,7 @@
 Afectados:
-HugoHerrera
-RafaelEspinoza
+RominaHernandez
+AdelaSepulveda
 
 Vulnerables:
-DamiánEspinoza
-NataliaRamirez
+NataliaSilva
+JorgeHerrera

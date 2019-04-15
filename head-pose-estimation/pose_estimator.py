@@ -141,3 +141,59 @@ class PoseEstimator:
         pose_marks.append(marks[48])    # Left Mouth corner
         pose_marks.append(marks[54])    # Right mouth corner
         return pose_marks
+
+
+if __name__ == '__main__':
+    from mark_detector import FaceDetector, MarkDetector
+
+    CNN_INPUT_SIZE = 128
+
+    image = cv2.imread("class.png")
+
+    print("Initializing detectors")
+    # Introduce mark_detector to detect landmarks.
+    mark_detector = MarkDetector()
+    face_detector = FaceDetector()
+
+    print("Initializing estimator")
+    height, width = image.shape[:2]
+    pose_estimator = PoseEstimator(img_size=(height, width))
+
+    confidences, faceboxes = face_detector.get_faceboxes(image, threshold=0.2)
+    
+    print("{} FACEBOXES".format(len(faceboxes)))
+    for facebox in faceboxes:
+        if min(facebox) < 0:
+            continue
+        # Detect landmarks from image of 128x128.
+        face_img = image[facebox[1]: facebox[3],
+                         facebox[0]: facebox[2]]
+
+        if not face_img.shape[0] or not face_img.shape[1]:
+            continue
+
+        face_img = cv2.resize(face_img, (CNN_INPUT_SIZE, CNN_INPUT_SIZE))
+        face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
+        marks = mark_detector.detect_marks(face_img)
+
+        # Convert the marks locations from local CNN to global image.
+        marks *= (facebox[2] - facebox[0])
+        marks[:, 0] += facebox[0]
+        marks[:, 1] += facebox[1]
+
+        detected_face = image[facebox[1]: facebox[3],facebox[0]: facebox[2]] #crop detected face
+        detected_face = cv2.cvtColor(detected_face, cv2.COLOR_BGR2GRAY) #transform to gray scale
+        detected_face = cv2.resize(detected_face, (48, 48)) #resize to 48x48
+
+        # Try pose estimation with 68 points.
+        pose = pose_estimator.solve_pose_by_68_points(marks)
+        #pose = pose_estimator.solve_pose(marks)
+
+        print("Pose:", pose)
+
+        # Uncomment following line to draw pose annotaion on frame.
+        pose_estimator.draw_annotation_box(
+                image, pose[0], pose[1], color=(255, 128, 128))
+
+    cv2.imwrite('class_with_pose.jpg', image)
+

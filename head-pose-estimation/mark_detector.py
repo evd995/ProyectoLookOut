@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 import cv2
+import tiny_faces
 
 
 class FaceDetector:
@@ -15,32 +16,38 @@ class FaceDetector:
         self.face_net = cv2.dnn.readNetFromCaffe(dnn_proto_text, dnn_model)
         self.detection_result = None
 
+    # def get_faceboxes(self, image, threshold=0.5):
+    #     """
+    #     Get the bounding box of faces in image using dnn.
+    #     """
+    #     rows, cols, _ = image.shape
+
+    #     confidences = []
+    #     faceboxes = []
+
+    #     self.face_net.setInput(cv2.dnn.blobFromImage(
+    #         image, 1.0, (300, 300), (104.0, 177.0, 123.0), False, False))
+    #     detections = self.face_net.forward()
+
+    #     for result in detections[0, 0, :, :]:
+    #         confidence = result[2]
+    #         if confidence > threshold:
+    #             x_left_bottom = int(result[3] * cols)
+    #             y_left_bottom = int(result[4] * rows)
+    #             x_right_top = int(result[5] * cols)
+    #             y_right_top = int(result[6] * rows)
+    #             confidences.append(confidence)
+    #             faceboxes.append(
+    #                 [x_left_bottom, y_left_bottom, x_right_top, y_right_top])
+
+    #     self.detection_result = [faceboxes, confidences]
+
+    #     return confidences, faceboxes
+
     def get_faceboxes(self, image, threshold=0.5):
-        """
-        Get the bounding box of faces in image using dnn.
-        """
-        rows, cols, _ = image.shape
-
-        confidences = []
-        faceboxes = []
-
-        self.face_net.setInput(cv2.dnn.blobFromImage(
-            image, 1.0, (300, 300), (104.0, 177.0, 123.0), False, False))
-        detections = self.face_net.forward()
-
-        for result in detections[0, 0, :, :]:
-            confidence = result[2]
-            if confidence > threshold:
-                x_left_bottom = int(result[3] * cols)
-                y_left_bottom = int(result[4] * rows)
-                x_right_top = int(result[5] * cols)
-                y_right_top = int(result[6] * rows)
-                confidences.append(confidence)
-                faceboxes.append(
-                    [x_left_bottom, y_left_bottom, x_right_top, y_right_top])
-
-        self.detection_result = [faceboxes, confidences]
-
+        faceboxes = tiny_faces.get_faceboxes(image, threshold=threshold)
+        #  Keep consistency with old version
+        confidences = [1] * len(faceboxes)
         return confidences, faceboxes
 
     def draw_all_result(self, image):
@@ -181,3 +188,19 @@ class MarkDetector:
         for mark in marks:
             cv2.circle(image, (int(mark[0]), int(
                 mark[1])), 1, color, -1, cv2.LINE_AA)
+
+
+if __name__ == '__main__':
+
+    image = cv2.imread("test.jpg")
+
+    print("Initializing detectors")
+    # Introduce mark_detector to detect landmarks.
+    mark_detector = MarkDetector()
+    face_detector = FaceDetector()
+
+    box = mark_detector.extract_cnn_facebox(image)
+    print("Box: ", box)
+
+    confidences, faceboxes = face_detector.get_faceboxes(image, threshold=0.2)
+    print("Boxes: ", faceboxes)
