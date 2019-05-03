@@ -1,7 +1,12 @@
 Afectados:
-RominaHernandez
-AdelaSepulveda
+TomásValenzuela
+TelmaValenzuela
+CarlosMorales
+CamilaCastillo
 
 Vulnerables:
-NataliaSilva
-JorgeHerrera
+MaiteEspinoza
+InésValenzuela
+BertaAraya
+InésFlores
+AdelaGomez

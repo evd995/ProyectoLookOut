@@ -142,18 +142,20 @@ NOTAS:
 
         self.ordenar_alumnos()
 
-    def tick(self, tick_value):
+    def tick(self, tick_value, asistentes):
         """
         Es un ciclo de simulación. Equivale a un minuto
 
         """
-        for i in self.estudiantes:
+        for i in asistentes:
+            # Se cambia "sociabilizando" a false y si quiere interactuar
             i.definir_interactuar()
+            # Se cambia la emocion
             i.cambiar_emocion(tick_value)
-        for i in self.estudiantes:
+        for i in asistentes:
             if i.sociabilizar and not i.sociabilizando:
                 candidatos_interaccion = []
-                for j in self.estudiantes:
+                for j in asistentes:
                     if j.sociabilizar and not j.sociabilizando and j != i:
                         i_fila, i_columna = i.puesto
                         j_fila, j_columna = j.puesto
@@ -176,7 +178,20 @@ NOTAS:
 
     def simular(self):
         for dia in range(self.dias):
-            print(f"Simulando dia {dia} de {self.dias}")
+            print(f"\nSimulando dia {dia} de {self.dias}")
+            print(f"Fecha: {self.hora.strftime('%Y/%m/%d')}")
+            weekday = self.hora.weekday()
+            if weekday % 7 == 5 or weekday % 7 == 6:
+                print('Fin de semana')
+                self.hora += pd.Timedelta('1d')
+                continue
+
+            # Definir asisentes
+            asistentes = []
+            for estudiante in self.estudiantes:
+                estudiante.definir_asistencia(self.hora.strftime('%Y/%m/%d'))
+                if estudiante.presente:
+                    asistentes.append(estudiante)
 
             # Ver si las personas vulnerables cambian su comportamiento
             for estudiante in self.vulnerables:
@@ -184,7 +199,7 @@ NOTAS:
 
             # Simular por cada minuto durante 8 horas
             for _ in range(60 * 8):
-                self.tick(self.hora.strftime('%Y/%m/%d, %H:%M:%S'))
+                self.tick(self.hora.strftime('%Y/%m/%d, %H:%M:%S'), asistentes)
 
                 # Aumentar el tiempo
                 self.hora += self.tiempo_incremento
@@ -193,7 +208,7 @@ NOTAS:
             # Cambiar de dia
             self.hora += self.dia_incremento
             # Cambiar los puestos en la sala
-            self.cambiar_puestos
+            self.cambiar_puestos()
 
         self.generar_reporte()
 
@@ -201,8 +216,27 @@ NOTAS:
         registros = defaultdict(dict)
         for estudiante in self.estudiantes:
             id_estudiante = estudiante.nombre + estudiante.apellido
-            registros[id_estudiante]['Emociones'] = estudiante.registro_emociones
-            registros[id_estudiante]['Interacciones'] = estudiante.registro_interacciones
+            registros[id_estudiante]['emociones'] = estudiante.registro_emociones
+            registros[id_estudiante]['interacciones'] = estudiante.registro_interacciones
+
+            # Rellenar datos de alumnos
+            registros[id_estudiante]['data'] = defaultdict(dict)
+            registros[id_estudiante]['data']['nombre'] = estudiante.nombre
+            registros[id_estudiante]['data']['apellido'] = estudiante.apellido
+            registros[id_estudiante]['data']['comuna'] = estudiante.comuna
+            registros[id_estudiante]['data']['apoderado'] = estudiante.apoderado
+            registros[id_estudiante]['data']['profesor_jefe'] = estudiante.profesor_jefe
+            registros[id_estudiante]['data']['telefono'] = estudiante.telefono
+            registros[id_estudiante]['data']['genero'] = estudiante.genero
+            registros[id_estudiante]['data']['promedio_ant'] = estudiante.promedio_ant
+            registros[id_estudiante]['data']['promedio_parcial'] = estudiante.promedio_parcial
+            registros[id_estudiante]['data']['n_evaluaciones_deficientes'] = estudiante.n_evaluaciones_deficientes
+            registros[id_estudiante]['data']['citas_psicologo'] = estudiante.citas_psicologo
+            if hasattr(estudiante, 'test_realizados'):
+                registros[id_estudiante]['data']['test_realizados'] = estudiante.test_realizados
+
+            # Guardar inasistencias
+            registros[id_estudiante]['inasistencias'] = estudiante.inasistencias
 
         with open('registro.json', 'w') as out:
             json.dump(registros, out)

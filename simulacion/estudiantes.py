@@ -31,11 +31,23 @@ class Estudiante:
 
     def __init__(self, genero):
         self.genero = genero
-        if genero is "hombre":
-            self.nombre = random.choice(NOMBRES_H)
-        elif genero is "mujer":
-            self.nombre = random.choice(NOMBRES_M)
-        self.apellido = random.choice(APELLIDOS)
+
+        # Default de datos
+        self.apellido = None
+        self.nombre = None
+        self.apoderado = None
+        self.domicilio = None
+        self.comuna = None
+        self.apoderado = None
+        self.profesor_jefe = None
+        self.telefono = None
+        self.promedio_ant = None
+        self.promedio_parcial = None
+        self.n_evaluaciones_deficientes = None
+        self.citas_psicologo = None
+        self.tests_realizados = None
+
+        self.rellenar_datos()
 
         # Tendencias a interactuar y tendencia emocional
         self.sociabilidad = None
@@ -49,6 +61,10 @@ class Estudiante:
         # Datos a guardar: emociones e interacciones
         self.registro_emociones = {}  #  key: hora, values: maximo, score_emociones
         self.registro_interacciones = defaultdict(list)
+
+        # Asistencias
+        self.inasistencias = {}
+        self.presente = False
 
     def definir_interactuar(self):
         """
@@ -130,6 +146,84 @@ class Estudiante:
         """
         id_otro = otro.nombre + otro.apellido
         self.registro_interacciones[id_otro].append(tick)
+
+    def rellenar_datos(self):
+        """
+        Función que rellena los datos del alumno
+        """
+
+        # Seleccionar nombre
+        if self.genero == "hombre":
+            self.nombre = random.choice(NOMBRES_H)
+        elif self.genero == "mujer":
+            self.nombre = random.choice(NOMBRES_M)
+
+        # Seleccionar apellido
+        self.apellido = random.choice(APELLIDOS)
+
+        # Seleccionar nombre de apoderado
+        self.apoderado = random.choice(NOMBRES_H) + ' ' + self.apellido
+
+        # Seleccionar comuna
+        self.comuna = random.choice(
+            ['Santiago', 'Providencia', 'Ñuñoa', 'Estación Central'])
+
+        # Seleccionar domicilio
+        prefijo_calle = random.choice(['Pdte.', 'Sta.'])
+        if prefijo_calle == 'Pdte.':
+            self.domicilio = prefijo_calle + ' ' + random.choice(APELLIDOS)
+        elif prefijo_calle == 'Sta.':
+            self.domicilio = prefijo_calle + ' ' + random.choice(NOMBRES_M)
+
+        # Seleccionar notas
+        self.promedio_ant = random.choice(np.arange(5, 7, 0.1))
+        variacion_nota = random.choice([-0.2, -0.1, 0, 0.1, 0.2])
+        nueva_nota = self.promedio_ant + variacion_nota
+        self.promedio_parcial = min(nueva_nota, 7)
+
+        # Seleccionar profesor jefe
+        self.profesor_jefe = 'Valentina Mansilla'
+
+        # Evaluaciones deficientes
+        self.n_evaluaciones_deficientes = random.choice(range(0, 4))
+
+        # Citas al psicologo
+        self.citas_psicologo = random.choice(range(0, 3))
+
+        self.tests_realizados = {}
+        # Tests realizados
+        if self.citas_psicologo:
+            tests_posibles = [
+                [],
+                ['My bullying'],
+                ['Test de Lúscher'],
+                ['My bullying', 'Test de Lúscher']
+            ]
+            tests_psicologicos = random.choice(tests_posibles)
+            for i, nombre_test in enumerate(tests_psicologicos):
+                self.tests_realizados[i] = {
+                    'nombre': nombre_test,
+                    'resultado': random.choice(['positivo', 'negativo'])
+                }
+
+        self.telefono = random.choice(range(10000000, 99999999, 10))
+
+    def definir_asistencia(self, dia):
+        """
+        Se define si la persona esta ausente o presente en un dia
+
+        Si un alumno estuvo ausente tiene una probabilidad más alta de seguir ausente
+        al día siguiente
+        """
+        if self.presente:
+            peso = [0.95, 0.05]
+        else:
+            peso = [0.8, 0.2]
+
+        self.presente = np.random.choice([True, False], p=peso)
+
+        if not self.presente:
+            self.inasistencias[dia] = True
 
     def __repr__(self):
         return self.nombre + " " + self.apellido

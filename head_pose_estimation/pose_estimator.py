@@ -142,9 +142,123 @@ class PoseEstimator:
         pose_marks.append(marks[54])    # Right mouth corner
         return pose_marks
 
+    def get_all_poses(self, image, mark_detector=None, face_detector=None, draw=False, draw_marks=False):
+        """
+        Get all the poses in an image
+        """
+        CNN_INPUT_SIZE = 128
+
+        print("Initializing detectors")
+        # Introduce mark_detector to detect landmarks.
+        if mark_detector is None:
+            from .mark_detector import MarkDetector
+            mark_detector = MarkDetector()
+        if face_detector is None:
+            from .mark_detector import FaceDetector
+            face_detector = FaceDetector()
+
+        confidences, faceboxes = face_detector.get_faceboxes(
+            image, threshold=0.2)
+
+        poses = []
+        print("{} FACEBOXES".format(len(faceboxes)))
+        for facebox in faceboxes:
+            if min(facebox) < 0:
+                continue
+            # Detect landmarks from image of 128x128.
+            face_img = image[facebox[1]: facebox[3],
+                             facebox[0]: facebox[2]]
+
+            if not face_img.shape[0] or not face_img.shape[1]:
+                continue
+
+            face_img = cv2.resize(face_img, (CNN_INPUT_SIZE, CNN_INPUT_SIZE))
+            face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
+            marks = mark_detector.detect_marks(face_img)
+
+            # Convert the marks locations from local CNN to global image.
+            marks *= (facebox[2] - facebox[0])
+            marks[:, 0] += facebox[0]
+            marks[:, 1] += facebox[1]
+
+            if draw_marks:
+                mark_detector.draw_marks(image, marks, color=(0, 0, 255))
+
+            detected_face = image[facebox[1]: facebox[3],
+                                  facebox[0]: facebox[2]]  # crop detected face
+            detected_face = cv2.cvtColor(
+                detected_face, cv2.COLOR_BGR2GRAY)  # transform to gray scale
+            detected_face = cv2.resize(
+                detected_face, (48, 48))  # resize to 48x48
+
+            # Try pose estimation with 68 points.
+            pose = self.solve_pose_by_68_points(marks)
+            #pose = pose_estimator.solve_pose(marks)
+
+            poses.append((pose[0].copy(), pose[1].copy()))
+
+            if draw:
+                self.draw_annotation_box(
+                    image, pose[0], pose[1], color=(255, 128, 128))
+
+        return poses
+
+    def get_all_cubes(self, image, mark_detector=None, face_detector=None, draw=False, draw_marks=False):
+        """
+        Get all cubes for detected poses
+        """
+        poses = self.get_all_poses(
+            image, mark_detector, face_detector, draw=draw, draw_marks=draw_marks)
+
+        points = []
+        for rotation_vector, translation_vector in poses:
+            point_3d = []
+            rear_size = 75
+            rear_depth = 0
+            point_3d.append((-rear_size, -rear_size, rear_depth))
+            point_3d.append((-rear_size, rear_size, rear_depth))
+            point_3d.append((rear_size, rear_size, rear_depth))
+            point_3d.append((rear_size, -rear_size, rear_depth))
+            point_3d.append((-rear_size, -rear_size, rear_depth))
+
+            front_size = 100
+            front_depth = 400
+            point_3d.append((-front_size, -front_size, front_depth))
+            point_3d.append((-front_size, front_size, front_depth))
+            point_3d.append((front_size, front_size, front_depth))
+            point_3d.append((front_size, -front_size, front_depth))
+            point_3d.append((-front_size, -front_size, front_depth))
+            point_3d = np.array(point_3d, dtype=np.float).reshape(-1, 3)
+
+            # Map to 2d image points
+            (point_2d, _) = cv2.projectPoints(point_3d,
+                                              rotation_vector,
+                                              translation_vector,
+                                              self.camera_matrix,
+                                              self.dist_coeefs)
+            point_2d = np.int32(point_2d.reshape(-1, 2))
+
+            points.append(point_2d)
+
+        return points
+
+    def draw_cube(self, image, point_2d, color=(255, 255, 255), line_width=2):
+        """
+        Draw 2d points of cube
+        """
+        # Draw all the lines
+        cv2.polylines(image, [point_2d], True, color, line_width, cv2.LINE_AA)
+        cv2.line(image, tuple(point_2d[1]), tuple(
+            point_2d[6]), color, line_width, cv2.LINE_AA)
+        cv2.line(image, tuple(point_2d[2]), tuple(
+            point_2d[7]), color, line_width, cv2.LINE_AA)
+        cv2.line(image, tuple(point_2d[3]), tuple(
+            point_2d[8]), color, line_width, cv2.LINE_AA)
+
 
 if __name__ == '__main__':
     from mark_detector import FaceDetector, MarkDetector
+    import pickle
 
     CNN_INPUT_SIZE = 128
 
@@ -159,41 +273,13 @@ if __name__ == '__main__':
     height, width = image.shape[:2]
     pose_estimator = PoseEstimator(img_size=(height, width))
 
-    confidences, faceboxes = face_detector.get_faceboxes(image, threshold=0.2)
-    
-    print("{} FACEBOXES".format(len(faceboxes)))
-    for facebox in faceboxes:
-        if min(facebox) < 0:
-            continue
-        # Detect landmarks from image of 128x128.
-        face_img = image[facebox[1]: facebox[3],
-                         facebox[0]: facebox[2]]
+    cubes = pose_estimator.get_all_cubes(
+        image, draw=False, mark_detector=mark_detector, face_detector=face_detector, draw_marks=True)
 
-        if not face_img.shape[0] or not face_img.shape[1]:
-            continue
+    with open('cubes.pkl', 'wb') as file:
+        pickle.dump(cubes, file)
 
-        face_img = cv2.resize(face_img, (CNN_INPUT_SIZE, CNN_INPUT_SIZE))
-        face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
-        marks = mark_detector.detect_marks(face_img)
-
-        # Convert the marks locations from local CNN to global image.
-        marks *= (facebox[2] - facebox[0])
-        marks[:, 0] += facebox[0]
-        marks[:, 1] += facebox[1]
-
-        detected_face = image[facebox[1]: facebox[3],facebox[0]: facebox[2]] #crop detected face
-        detected_face = cv2.cvtColor(detected_face, cv2.COLOR_BGR2GRAY) #transform to gray scale
-        detected_face = cv2.resize(detected_face, (48, 48)) #resize to 48x48
-
-        # Try pose estimation with 68 points.
-        pose = pose_estimator.solve_pose_by_68_points(marks)
-        #pose = pose_estimator.solve_pose(marks)
-
-        print("Pose:", pose)
-
-        # Uncomment following line to draw pose annotaion on frame.
-        pose_estimator.draw_annotation_box(
-                image, pose[0], pose[1], color=(255, 128, 128))
+    for cube in cubes:
+        pose_estimator.draw_cube(image, cube, color=(255, 128, 128))
 
     cv2.imwrite('class_with_pose.jpg', image)
-
